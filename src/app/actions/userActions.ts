@@ -7,29 +7,41 @@ import { randomUUID } from "crypto";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-export async function signInAction() {
-  // const email = formData.get("email") as string;
-  // const password = formData.get("password") as string;
+export async function smartSignIn(formData: FormData) {
+  const identifier = formData.get("username") as string;
+  const password = formData.get("password") as string;
 
-  const result = await auth.api.signInEmail({
-    body: {
-      email: "test1@gmail.com",
-      password: "Aa123456",
+  /** search for the user that matches either the email or username in the User table in the database */
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [{ email: identifier }, { username: identifier }],
     },
+    select: { email: true, username: true },
   });
+
+  if (!user) throw new Error("Invalid credentials.");
+
+  user.email === identifier
+    ? await auth.api.signInEmail({ body: { email: identifier, password } })
+    : await auth.api.signInUsername({ body: { username: identifier, password } });
 
   return { success: true };
 }
 
 export async function signUpAction(formData: FormData) {
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
+  const { username, name, email, password } = Object.fromEntries(formData.entries()) as {
+    username: string;
+    name: string;
+    email: string;
+    password: string;
+  };
 
   const result = await auth.api.signUpEmail({
     body: {
-      email,
-      password: "Aa123456",
+      username,
       name,
+      email,
+      password,
       callbackURL: "/dashboard",
     },
   });
