@@ -3,9 +3,11 @@
 import { auth } from "@/lib/auth";
 import { authClient } from "@/lib/auth-client";
 import prisma from "@/lib/prisma";
+import { SignUpActionState, signUpFormSchema } from "@/types/FormSubmitData/signUp";
 import { randomUUID } from "crypto";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import z from "zod";
 
 export async function smartSignIn(formData: FormData) {
   const identifier = formData.get("username") as string;
@@ -28,22 +30,20 @@ export async function smartSignIn(formData: FormData) {
   return { success: true };
 }
 
-export async function signUpAction(formData: FormData) {
-  const { username, name, email, password } = Object.fromEntries(formData.entries()) as {
-    username: string;
-    name: string;
-    email: string;
-    password: string;
-  };
+export async function signUpAction(form: any) {
+  const validation = signUpFormSchema.safeParse(form);
 
-  const result = await auth.api.signUpEmail({
-    body: {
-      username,
-      name,
-      email,
-      password,
-      callbackURL: "/dashboard",
-    },
+  if (!validation.success) {
+    return {
+      success: false,
+      errors: z.treeifyError(validation.error),
+    };
+  }
+
+  const { username, name, email, password } = validation.data;
+
+  await auth.api.signUpEmail({
+    body: { username, name, email, password, callbackURL: "/dashboard" },
   });
 
   return { success: true };
