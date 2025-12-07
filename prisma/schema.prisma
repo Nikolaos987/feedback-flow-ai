@@ -80,3 +80,34 @@ model Verification {
   @@index([identifier])
   @@map("verification")
 }
+
+model FeedbackItem {
+  id                 String              @id @default(cuid())
+  source             String
+  raw_content        String
+  original_timestamp DateTime
+  created_at         DateTime            @default(now())
+  external_id        String
+  analyses           FeedbackAnalysis[]
+
+  @@unique([external_id, source]) // required for idempotency
+}
+
+model FeedbackAnalysis {
+  id               String         @id @default(cuid())
+  feedback_item_id String
+  sentiment        String
+  topics           Json
+  severity_score   Int
+  summary          String
+  status           Status          @default(NEW)
+  created_at       DateTime        @default(now())
+
+  feedback_item FeedbackItem @relation(fields: [feedback_item_id], references: [id])
+}
+
+enum Status {
+  NEW
+  ACKNOWLEDGED
+  ACTIONED
+}
