@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 
-console.log("🔍 Middleware triggered!"); // Now this should log
-
 export async function proxy(request: NextRequest) {
   const session = await auth.api.getSession({
     headers: await headers(),
