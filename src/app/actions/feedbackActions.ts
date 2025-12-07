@@ -1,9 +1,10 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { GithubIssue } from "@/types/GithubIssues/githubIssue";
 
 /** store github issues to the prisma FEEDBACK_ITEM   database */
-export async function createFeedbackItems(issues) {
+export async function createFeedbackItems(issues: GithubIssue[]) {
   await Promise.all(
     issues.map((issue) =>
       prisma.feedbackItem.upsert({
