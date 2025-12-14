@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { signOutAction } from "../actions/userActions";
+import { signOutAction } from "../../actions/userActions";
 
 export default async function page() {
   const session = await auth.api.getSession({
