@@ -1,17 +1,16 @@
 "use server";
 
+import { LoginValues } from "@/components/features/auth/loginForm";
 import { auth } from "@/lib/auth";
-import { authClient } from "@/lib/auth-client";
 import prisma from "@/lib/prisma";
-import { SignUpActionState, signUpFormSchema } from "@/types/FormSubmitData/signUp";
-import { randomUUID } from "crypto";
+import { signUpFormSchema } from "@/types/FormSubmitData/signUp";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import z from "zod";
 
-export async function smartSignIn(formData: FormData) {
-  const identifier = formData.get("username") as string;
-  const password = formData.get("password") as string;
+export async function smartSignIn(formData: LoginValues) {
+  const identifier = formData.username as string;
+  const password = formData.password as string;
 
   /** search for the user that matches either the email or username in the User table in the database */
   const user = await prisma.user.findFirst({
