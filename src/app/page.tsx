@@ -1,7 +1,6 @@
 // "use client";
 
 import { Button } from "@/components/ui/button";
-import { signOutAction } from "./actions/userActions";
 import { ArrowRight, BarChart3, Brain, Inbox, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
@@ -9,39 +8,6 @@ import { Card } from "@/components/ui/card";
 export default function Home() {
   return (
     <div className="from-background to-muted/20 min-h-screen bg-linear-to-b">
-      {/* Header */}
-      <header
-        className="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-b
-          backdrop-blur"
-      >
-        <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-          <div className="flex items-center gap-2 text-xl font-semibold">
-            <Sparkles className="text-primary h-6 w-6" />
-            FeedbackFlow AI
-          </div>
-          <nav className="flex items-center gap-6">
-            <Link
-              href="#features"
-              className="text-muted-foreground hover:text-foreground text-sm font-medium
-                transition-colors"
-            >
-              Features
-            </Link>
-            <Link
-              href="#how-it-works"
-              className="text-muted-foreground hover:text-foreground text-sm font-medium
-                transition-colors"
-            >
-              How It Works
-            </Link>
-            <Link href="/app/dashboard">
-              <Button size="sm">View Demo Dashboard</Button>
-            </Link>
-            <Button className="bg-destructive" onClick={signOutAction}>Sign out</Button>
-          </nav>
-        </div>
-      </header>
-
       {/* Hero Section */}
       <section className="container mx-auto max-w-7xl px-4 py-24">
         <div className="flex flex-col items-center gap-8 text-center">
@@ -188,21 +154,6 @@ export default function Home() {
           </Link>
         </Card>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t py-8">
-        <div className="container mx-auto max-w-7xl px-4">
-          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <div className="flex items-center gap-2 font-semibold">
-              <Sparkles className="text-primary h-5 w-5" />
-              FeedbackFlow AI
-            </div>
-            <p className="text-muted-foreground text-sm">
-              © 2026 FeedbackFlow AI. Built for product and customer success teams.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
