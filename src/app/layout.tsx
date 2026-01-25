@@ -28,9 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
-        <Navbar />
         <QueryClientProviders>{children}</QueryClientProviders>
-        <Footer />
       </body>
     </html>
   );

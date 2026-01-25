@@ -16,20 +16,20 @@ export default function Navbar() {
         </div>
         <nav className="flex items-center gap-6">
           <Link
-            href="#features"
+            href="/#features"
             className="text-muted-foreground hover:text-foreground text-sm font-medium
               transition-colors"
           >
             Features
           </Link>
           <Link
-            href="#how-it-works"
+            href="/#how-it-works"
             className="text-muted-foreground hover:text-foreground text-sm font-medium
               transition-colors"
           >
             How It Works
           </Link>
-          <Link href="/app/dashboard">
+          <Link href="/dashboard">
             <Button size="sm">Dashboard</Button>
           </Link>
           <Button className="bg-destructive" onClick={signOutAction}>

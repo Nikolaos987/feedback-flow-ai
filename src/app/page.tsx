@@ -4,10 +4,13 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, BarChart3, Brain, Inbox, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import Navbar from "@/components/commons/navbar";
+import Footer from "@/components/commons/footer";
 
 export default function Home() {
   return (
     <div className="from-background to-muted/20 min-h-screen bg-linear-to-b">
+      <Navbar />
       {/* Hero Section */}
       <section className="container mx-auto max-w-7xl px-4 py-24">
         <div className="flex flex-col items-center gap-8 text-center">
@@ -154,6 +157,7 @@ export default function Home() {
           </Link>
         </Card>
       </section>
+      <Footer />
     </div>
   );
 }
