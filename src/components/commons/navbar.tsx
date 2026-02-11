@@ -6,7 +6,7 @@ import { signOutAction } from "@/app/actions/userActions";
 export default function Navbar() {
   return (
     <header
-      className="bg-background/95 supports-backdrop-filter:bg-background/60 sticky top-0
+      className="bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-20
         overflow-hidden border-b backdrop-blur"
     >
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">

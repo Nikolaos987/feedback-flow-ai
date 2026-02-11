@@ -1,7 +1,10 @@
 import { QueryClientProviders } from "@/app/providers/queryClient/queryClientProvider";
+import AnimatedDiv from "@/components/commons/AnimatedDiv";
 import AppSidebar from "@/components/commons/app-sidebar";
 import Footer from "@/components/commons/footer";
 import Navbar from "@/components/commons/navbar";
+import { NavbarScroll } from "@/components/commons/NavbarScroll";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
@@ -22,21 +25,22 @@ export const metadata: Metadata = {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden">
-      <aside className="w-64 shrink-0 border-r">
-        <AppSidebar />
-      </aside>
-
-      <div className="flex flex-1 flex-col">
-        <header className="shrink-0 border-b">
-          <Navbar />
-        </header>
-
-        <main className="flex-1 overflow-y-auto">
-          {children}
-          <Footer />
-        </main>
-      </div>
-    </div>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <Navbar />
+        <div className="flex flex-1 flex-col gap-2 p-0 pt-0 sm:gap-4 sm:p-4">
+          <div className="flex-1 rounded-lg sm:rounded-xl sm:p-4 md:p-6">
+            <div className="w-full space-y-4 sm:space-y-6">
+              {/* Main Content Grid */}
+              <div className="grid grid-cols-1 gap-4 sm:gap-6">
+                <div className="space-y-4 sm:space-y-6 xl:col-span-2">{children}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
