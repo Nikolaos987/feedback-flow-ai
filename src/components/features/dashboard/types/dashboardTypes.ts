@@ -1,19 +1,28 @@
-type Sentiment = "positive" | "negative" | "neutral";
+import { SENTIMENTS } from "../constants/dashboard";
 
-type TrendPoint = {
+export type Sentiment = (typeof SENTIMENTS)[number];
+
+export type statsCards = {
+  totalFeedback: number;
+  positive: number;
+  negative: number;
+  highSeverity: number;
+};
+
+export type SentimentPoint = {
   date: string;
   positive: number;
   negative: number;
   neutral: number;
 };
 
-type TopicPoint = {
+export type TopicPoint = {
   topic: string;
   count: number;
-  fill: string;
+  fillKey: number;
 };
 
-type HighSeverityFeedback = {
+export type HighSeverityFeedback = {
   id: string;
   source: string;
   sentiment: Sentiment;
@@ -23,15 +32,12 @@ type HighSeverityFeedback = {
   timestamp: string;
 };
 
-export type DashboardData = {
-  totalFeedback: number;
-  sentimentBreakdown: {
-    positive: number;
-    negative: number;
-    neutral: number;
-  };
-  highSeverityCount: number;
-  sentimentTrendData: TrendPoint[];
-  topicDistributionData: TopicPoint[];
-  highSeverityFeedback: HighSeverityFeedback[];
+export type HighSeverityFeedbackItem = {
+  id: string;
+  source: string;
+  sentiment: Sentiment;
+  severity: number;
+  summary: string;
+  topics: string[];
+  timestamp: Date;
 };

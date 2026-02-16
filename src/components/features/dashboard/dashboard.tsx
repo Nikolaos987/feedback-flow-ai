@@ -17,28 +17,59 @@ import {
 } from "recharts";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
-import { fetchDashboardData } from "@/services/getDashboardData";
+import { queryOptions, useQueries, useQuery } from "@tanstack/react-query";
+import { fetchStatsCards } from "@/services/getStatsCards";
+import { fetchSentimentTrendData } from "@/services/getSentimentTrendData";
+import { fetchTopicDistributionData } from "@/services/getTopicDistributionData";
+import { fetchHighSeverityFeedback } from "@/services/getHighSeverityFeedback";
 
 export default function Dashboard() {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["dashboard-data"],
-    queryFn: fetchDashboardData,
-  });
+  const [statisticsQuery, sentimentChartQuery, topicDistributionQuery, highSeverityFeedbackQuery] =
+    useQueries({
+      queries: [
+        queryOptions({
+          queryFn: fetchStatsCards,
+          queryKey: ["statsCards"],
+        }),
+        queryOptions({
+          queryFn: fetchSentimentTrendData,
+          queryKey: ["sentimentTrend"],
+        }),
+        queryOptions({
+          queryFn: fetchTopicDistributionData,
+          queryKey: ["topicDistribution"],
+        }),
+        queryOptions({
+          queryFn: fetchHighSeverityFeedback,
+          queryKey: ["highSeverityFeedback"],
+        }),
+      ],
+    });
 
-  const totalFeedback = data?.totalFeedback ?? 0;
-  const sentimentBreakdown = data?.sentimentBreakdown ?? {
-    positive: 0,
+  const isLoading =
+    statisticsQuery.isLoading ||
+    sentimentChartQuery.isLoading ||
+    topicDistributionQuery.isLoading ||
+    highSeverityFeedbackQuery.isLoading;
+
+  const isError =
+    statisticsQuery.isError ||
+    sentimentChartQuery.isError ||
+    topicDistributionQuery.isError ||
+    highSeverityFeedbackQuery.isError;
+
+  const statisticsData = statisticsQuery?.data ?? {
+    highSeverity: 0,
     negative: 0,
-    neutral: 0,
+    positive: 0,
+    totalFeedback: 0,
   };
-  const highSeverityCount = data?.highSeverityCount ?? 0;
-  const sentimentTrendData = data?.sentimentTrendData ?? [];
-  const topicDistributionData = data?.topicDistributionData ?? [];
-  const highSeverityFeedback = data?.highSeverityFeedback ?? [];
+  const sentimentData = sentimentChartQuery?.data ?? [];
+  const topicDistributionData = topicDistributionQuery?.data ?? [];
+  const highSeverityFeedbackData = highSeverityFeedbackQuery?.data ?? [];
 
   const percentageOfTotal = (value: number) =>
-    totalFeedback > 0 ? Math.round((value / totalFeedback) * 100) : 0;
+    statisticsData.totalFeedback > 0 ? Math.round((value / statisticsData.totalFeedback) * 100) : 0;
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -95,7 +126,7 @@ export default function Dashboard() {
             <MessageSquare className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalFeedback}</div>
+            <div className="text-2xl font-bold">{statisticsData.totalFeedback}</div>
             <p className="text-muted-foreground mt-1 text-xs">All time</p>
           </CardContent>
         </Card>
@@ -106,9 +137,9 @@ export default function Dashboard() {
             <SmilePlus className="text-success h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{sentimentBreakdown.positive}</div>
+            <div className="text-2xl font-bold">{statisticsData.positive}</div>
             <p className="text-muted-foreground mt-1 text-xs">
-              {percentageOfTotal(sentimentBreakdown.positive)}% of total
+              {percentageOfTotal(statisticsData.positive)}% of total
             </p>
           </CardContent>
         </Card>
@@ -119,9 +150,9 @@ export default function Dashboard() {
             <TrendingUp className="text-destructive h-4 w-4 rotate-180" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{sentimentBreakdown.negative}</div>
+            <div className="text-2xl font-bold">{statisticsData.negative}</div>
             <p className="text-muted-foreground mt-1 text-xs">
-              {percentageOfTotal(sentimentBreakdown.negative)}% of total
+              {percentageOfTotal(statisticsData.negative)}% of total
             </p>
           </CardContent>
         </Card>
@@ -132,7 +163,7 @@ export default function Dashboard() {
             <AlertCircle className="text-destructive h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{highSeverityCount}</div>
+            <div className="text-2xl font-bold">{statisticsData.highSeverity}</div>
             <p className="text-muted-foreground mt-1 text-xs">Severity 7-10</p>
           </CardContent>
         </Card>
@@ -147,7 +178,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={sentimentTrendData}>
+              <LineChart data={sentimentData}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis
                   dataKey="date"
@@ -212,8 +243,11 @@ export default function Dashboard() {
                   }}
                 />
                 <Bar dataKey="count" radius={[8, 8, 0, 0]}>
-                  {topicDistributionData.map((entry, index) => (
-                    <Cell key={`cell-${entry.topic}-${index}`} fill={entry.fill} />
+                  {topicDistributionQuery.data?.map((entry, index) => (
+                    <Cell
+                      key={`cell-${entry.topic}-${index}`}
+                      fill={`var(--color-chart-${entry?.fillKey})`}
+                    />
                   ))}
                 </Bar>
               </BarChart>
@@ -231,11 +265,11 @@ export default function Dashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {highSeverityFeedback.length === 0 ? (
+          {highSeverityFeedbackData.length === 0 ? (
             <p className="text-muted-foreground text-sm">No high severity feedback found.</p>
           ) : (
             <div className="space-y-4">
-              {highSeverityFeedback.map((feedback) => (
+              {highSeverityFeedbackData.map((feedback) => (
                 <Link key={feedback.id} href={`/app/inbox/${feedback.id}`}>
                   <div
                     className={`hover:bg-muted/50 flex cursor-pointer items-start gap-4 rounded-lg
