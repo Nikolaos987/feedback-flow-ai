@@ -7,6 +7,7 @@ export async function getGithubIssues() {
       "X-GitHub-Api-Version": "2022-11-28",
       // Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
     },
+    params: { per_page: 3, page: 1 },
   });
   return response.data;
 }

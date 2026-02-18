@@ -1,35 +1,87 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockFeedback, sentimentTrendData, topicDistributionData } from "@/lib/mock-data";
 import { AlertCircle, MessageSquare, SmilePlus, TrendingUp } from "lucide-react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
-  Legend,
 } from "recharts";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { queryOptions, useQueries, useQuery } from "@tanstack/react-query";
+import { fetchStatsCards } from "@/services/getStatsCards";
+import { fetchSentimentTrendData } from "@/services/getSentimentTrendData";
+import { fetchTopicDistributionData } from "@/services/getTopicDistributionData";
+import { fetchHighSeverityFeedback } from "@/services/getHighSeverityFeedback";
 
 export default function Dashboard() {
-  const totalFeedback = mockFeedback.length;
-  const sentimentBreakdown = {
-    positive: mockFeedback.filter((f) => f.sentiment === "positive").length,
-    negative: mockFeedback.filter((f) => f.sentiment === "negative").length,
-    neutral: mockFeedback.filter((f) => f.sentiment === "neutral").length,
+  const [statisticsQuery, sentimentChartQuery, topicDistributionQuery, highSeverityFeedbackQuery] =
+    useQueries({
+      queries: [
+        queryOptions({
+          queryFn: fetchStatsCards,
+          queryKey: ["statsCards"],
+        }),
+        queryOptions({
+          queryFn: fetchSentimentTrendData,
+          queryKey: ["sentimentTrend"],
+        }),
+        queryOptions({
+          queryFn: fetchTopicDistributionData,
+          queryKey: ["topicDistribution"],
+        }),
+        queryOptions({
+          queryFn: fetchHighSeverityFeedback,
+          queryKey: ["highSeverityFeedback"],
+        }),
+      ],
+    });
+
+  const isLoading =
+    statisticsQuery.isLoading ||
+    sentimentChartQuery.isLoading ||
+    topicDistributionQuery.isLoading ||
+    highSeverityFeedbackQuery.isLoading;
+
+  const isError =
+    statisticsQuery.isError ||
+    sentimentChartQuery.isError ||
+    topicDistributionQuery.isError ||
+    highSeverityFeedbackQuery.isError;
+
+  const statisticsData = statisticsQuery?.data ?? {
+    highSeverity: 0,
+    negative: 0,
+    positive: 0,
+    totalFeedback: 0,
   };
-  const highSeverityCount = mockFeedback.filter((f) => f.severity >= 4).length;
-  const highSeverityFeedback = mockFeedback
-    .filter((f) => f.severity >= 4)
-    .sort((a, b) => b.severity - a.severity);
+  const sentimentData = sentimentChartQuery?.data ?? [];
+  const topicDistributionData = topicDistributionQuery?.data ?? [];
+  const highSeverityFeedbackData = highSeverityFeedbackQuery?.data ?? [];
+
+  const percentageOfTotal = (value: number) =>
+    statisticsData.totalFeedback > 0 ? Math.round((value / statisticsData.totalFeedback) * 100) : 0;
+
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return timestamp;
+
+    return date.toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
 
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
@@ -43,16 +95,27 @@ export default function Dashboard() {
   };
 
   const getSeverityColor = (severity: number) => {
-    if (severity >= 4) return "text-destructive";
-    if (severity === 3) return "text-warning";
+    if (severity >= 7) return "text-destructive";
+    if (severity >= 5) return "text-warning";
     return "text-muted-foreground";
   };
+
+  if (isError) {
+    return (
+      <div className="container max-w-7xl px-6 py-8">
+        <p className="text-destructive">Failed to load dashboard data.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container max-w-7xl px-6 py-8">
       <div className="mb-8">
         <h1 className="mb-2 text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground">Overview of customer feedback insights and trends</p>
+        {isLoading ? (
+          <p className="text-muted-foreground mt-1 text-sm">Loading latest data...</p>
+        ) : null}
       </div>
 
       {/* Stat Cards */}
@@ -63,7 +126,7 @@ export default function Dashboard() {
             <MessageSquare className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalFeedback}</div>
+            <div className="text-2xl font-bold">{statisticsData.totalFeedback}</div>
             <p className="text-muted-foreground mt-1 text-xs">All time</p>
           </CardContent>
         </Card>
@@ -74,9 +137,9 @@ export default function Dashboard() {
             <SmilePlus className="text-success h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{sentimentBreakdown.positive}</div>
+            <div className="text-2xl font-bold">{statisticsData.positive}</div>
             <p className="text-muted-foreground mt-1 text-xs">
-              {Math.round((sentimentBreakdown.positive / totalFeedback) * 100)}% of total
+              {percentageOfTotal(statisticsData.positive)}% of total
             </p>
           </CardContent>
         </Card>
@@ -87,9 +150,9 @@ export default function Dashboard() {
             <TrendingUp className="text-destructive h-4 w-4 rotate-180" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{sentimentBreakdown.negative}</div>
+            <div className="text-2xl font-bold">{statisticsData.negative}</div>
             <p className="text-muted-foreground mt-1 text-xs">
-              {Math.round((sentimentBreakdown.negative / totalFeedback) * 100)}% of total
+              {percentageOfTotal(statisticsData.negative)}% of total
             </p>
           </CardContent>
         </Card>
@@ -100,8 +163,8 @@ export default function Dashboard() {
             <AlertCircle className="text-destructive h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{highSeverityCount}</div>
-            <p className="text-muted-foreground mt-1 text-xs">Severity 4-5</p>
+            <div className="text-2xl font-bold">{statisticsData.highSeverity}</div>
+            <p className="text-muted-foreground mt-1 text-xs">Severity 7-10</p>
           </CardContent>
         </Card>
       </div>
@@ -115,18 +178,18 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={sentimentTrendData}>
+              <LineChart data={sentimentData}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis
                   dataKey="date"
                   className="text-xs"
-                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                  tick={{ fill: "var(--muted-foreground)" }}
                 />
-                <YAxis className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis className="text-xs" tick={{ fill: "var(--muted-foreground)" }} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
+                    backgroundColor: "var(--card)",
+                    border: "1px solid var(--border)",
                     borderRadius: "8px",
                   }}
                 />
@@ -134,22 +197,22 @@ export default function Dashboard() {
                 <Line
                   type="monotone"
                   dataKey="positive"
-                  stroke="hsl(var(--success))"
+                  stroke="var(--success)"
                   strokeWidth={2}
                   name="Positive"
                 />
                 <Line
                   type="monotone"
                   dataKey="negative"
-                  stroke="hsl(var(--destructive))"
+                  stroke="var(--destructive)"
                   strokeWidth={2}
                   name="Negative"
                 />
                 <Line
                   type="monotone"
                   dataKey="neutral"
-                  stroke="hsl(var(--muted-foreground))"
-                  strokeWidth={2}
+                  stroke="var(--muted-foreground)"
+                  strokeWidth={1}
                   name="Neutral"
                 />
               </LineChart>
@@ -169,19 +232,22 @@ export default function Dashboard() {
                 <XAxis
                   dataKey="topic"
                   className="text-xs"
-                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                  tick={{ fill: "var(--muted-foreground)" }}
                 />
-                <YAxis className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis className="text-xs" tick={{ fill: "var(--muted-foreground)" }} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
+                    backgroundColor: "var(--card)",
+                    border: "1px solid var(--border)",
                     borderRadius: "8px",
                   }}
                 />
                 <Bar dataKey="count" radius={[8, 8, 0, 0]}>
-                  {topicDistributionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  {topicDistributionQuery.data?.map((entry, index) => (
+                    <Cell
+                      key={`cell-${entry.topic}-${index}`}
+                      fill={`var(--color-chart-${entry?.fillKey})`}
+                    />
                   ))}
                 </Bar>
               </BarChart>
@@ -199,42 +265,46 @@ export default function Dashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {highSeverityFeedback.map((feedback) => (
-              <Link key={feedback.id} href={`/app/inbox/${feedback.id}`}>
-                <div
-                  className={`hover:bg-muted/50 flex cursor-pointer items-start gap-4 rounded-lg
-                  border p-4 transition-colors`}
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Badge variant="outline" className={getSentimentColor(feedback.sentiment)}>
-                        {feedback.sentiment}
-                      </Badge>
-                      <span
-                        className={`text-sm font-semibold ${getSeverityColor(feedback.severity)}`}
-                      >
-                        Severity {feedback.severity}
-                      </span>
-                      <span className="text-muted-foreground text-sm">•</span>
-                      <span className="text-muted-foreground text-sm">{feedback.source}</span>
-                    </div>
-                    <p className="mb-1 text-sm font-medium">{feedback.summary}</p>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {feedback.topics.map((topic) => (
-                        <Badge key={topic} variant="secondary" className="text-xs">
-                          {topic}
+          {highSeverityFeedbackData.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No high severity feedback found.</p>
+          ) : (
+            <div className="space-y-4">
+              {highSeverityFeedbackData.map((feedback) => (
+                <Link key={feedback.id} href={`/app/inbox/${feedback.id}`}>
+                  <div
+                    className={`hover:bg-muted/50 flex cursor-pointer items-start gap-4 rounded-lg
+                      border p-4 transition-colors`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-2 flex items-center gap-2">
+                        <Badge variant="outline" className={getSentimentColor(feedback.sentiment)}>
+                          {feedback.sentiment}
                         </Badge>
-                      ))}
+                        <span
+                          className={`text-sm font-semibold ${getSeverityColor(feedback.severity)}`}
+                        >
+                          Severity {feedback.severity}
+                        </span>
+                        <span className="text-muted-foreground text-sm">&bull;</span>
+                        <span className="text-muted-foreground text-sm">{feedback.source}</span>
+                      </div>
+                      <p className="mb-1 text-sm font-medium">{feedback.summary}</p>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {feedback.topics.map((topic) => (
+                          <Badge key={topic} variant="secondary" className="text-xs">
+                            {topic}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-muted-foreground text-xs whitespace-nowrap">
+                      {formatTimestamp(feedback.timestamp)}
                     </div>
                   </div>
-                  <div className="text-muted-foreground text-xs whitespace-nowrap">
-                    {feedback.timestamp}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
