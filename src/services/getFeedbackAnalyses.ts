@@ -1,4 +1,3 @@
-import { Sentiment, statsCards } from "@/components/features/dashboard/types/dashboardTypes";
 import { FeedbackAnalysis } from "@/types/FeedbackAi/feedbackAi";
 import axios from "axios";
 

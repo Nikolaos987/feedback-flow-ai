@@ -2,8 +2,7 @@ import { SENTIMENTS } from "../constants/dashboard";
 
 export type Sentiment = (typeof SENTIMENTS)[number];
 
-// !TODO rename to StatsCards
-export type statsCards = {
+export type StatsCards = {
   totalFeedback: number;
   positive: number;
   negative: number;
