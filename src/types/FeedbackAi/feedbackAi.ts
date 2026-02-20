@@ -1,5 +1,12 @@
 import { Sentiment } from "@/components/features/dashboard/types/dashboardTypes";
 
+type FilterOption = {
+  value: string | number;
+  label: string;
+};
+
+export type FiltersMap = Record<string, FilterOption[]>;
+
 export type FeedbackItem = {
   created_at: Date;
   external_id: string;

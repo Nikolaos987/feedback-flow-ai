@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    console.log("🚀 ~ GET ~ where:", where);
     const feedbackAnalyses = await prisma.feedbackAnalysis.findMany({
       include: {
         feedback_item: true,
@@ -47,7 +46,44 @@ export async function GET(request: NextRequest) {
       where,
     });
 
-    return NextResponse.json(feedbackAnalyses);
+    const [sentimentsRaw, statusesRaw, severityScoresRaw] = await Promise.all([
+      prisma.feedbackAnalysis.findMany({
+        select: { sentiment: true },
+        distinct: ["sentiment"],
+      }),
+      prisma.feedbackAnalysis.findMany({
+        select: { status: true },
+        distinct: ["status"],
+      }),
+      prisma.feedbackAnalysis.findMany({
+        select: { severity_score: true },
+        distinct: ["severity_score"],
+        orderBy: { severity_score: "desc" },
+      }),
+    ]);
+
+    const sentiments = [
+      { value: "all", label: "All Sentiments" },
+      ...sentimentsRaw.map((s, i) => {
+        return { value: s.sentiment, label: s.sentiment };
+      }),
+    ];
+    const statuses = [
+      { value: "all", label: "All Statuses" },
+      ...statusesRaw.map((s, i) => {
+        return { value: s.status, label: s.status };
+      }),
+    ];
+    const severities = [
+      { value: "all", label: "All Severities" },
+      ...severityScoresRaw.map((s, i) => {
+        return { value: s.severity_score, label: s.severity_score };
+      }),
+    ];
+
+    const search = { sentiment: sentiments, status: statuses, severity: severities };
+
+    return NextResponse.json({ data: feedbackAnalyses, search });
   } catch (error) {
     console.error("Failed to fetch feedback analyses data", error);
     return NextResponse.json({ error: "Failed to fetch feedback analyses data" }, { status: 500 });

@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 export type Item = {
   value: string | number;
   label: string;
-  count?: string | number;
+  // count?: string | number;
 };
 
 export interface FiltersProps extends ShadcnSelectProps {

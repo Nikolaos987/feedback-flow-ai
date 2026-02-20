@@ -2,11 +2,7 @@ import { Filtering } from "@/types/Data/filters";
 import { FeedbackAnalysis } from "@/types/FeedbackAi/feedbackAi";
 import axios from "axios";
 
-export async function fetchFeedbackAnalyses({
-  filters,
-}: {
-  filters: Filtering;
-}): Promise<FeedbackAnalysis[]> {
+export async function fetchFeedbackAnalyses({ filters }: { filters: Filtering }) {
   const params = {
     ...(filters.sentiment && filters.sentiment !== "all" ? { sentiment: filters.sentiment } : {}),
     ...(filters.status && filters.status !== "all" ? { status: filters.status } : {}),

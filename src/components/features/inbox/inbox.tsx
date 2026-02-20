@@ -4,18 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Filter } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchFeedbackAnalyses } from "@/services/getFeedbackAnalyses";
 import { Filtering } from "@/types/Data/filters";
 import SelectWrapper from "@/components/commons/SelectWrapper";
+import { FeedbackAnalysis, FiltersMap } from "@/types/FeedbackAi/feedbackAi";
 
 export default function Inbox() {
   const [filters, setFilters] = useState<Filtering>({});
@@ -23,7 +17,11 @@ export default function Inbox() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["feedbackAnalyses", filters],
     queryFn: () => fetchFeedbackAnalyses({ filters }),
+    placeholderData: (prev) => prev,
   });
+
+  const inboxItems: FeedbackAnalysis[] = data?.data;
+  const search: FiltersMap = data?.search;
 
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
@@ -81,16 +79,11 @@ export default function Inbox() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Sentiment</label>
               <SelectWrapper
-                value={filters.sentiment || "all"}
+                value={filters["sentiment"] ?? "all"}
                 onValueChange={(val: string) =>
                   setFilters((prev) => ({ ...prev, sentiment: val === "all" ? undefined : val }))
                 }
-                items={[
-                  { value: "all", label: "All Sentiments" },
-                  { value: "positive", label: "Positive" },
-                  { value: "negative", label: "Negative" },
-                  { value: "neutral", label: "Neutral" },
-                ]}
+                items={search?.sentiment}
               />
             </div>
 
@@ -101,12 +94,7 @@ export default function Inbox() {
                 onValueChange={(val) =>
                   setFilters((prev) => ({ ...prev, status: val === "all" ? undefined : val }))
                 }
-                items={[
-                  { value: "all", label: "All Statuses" },
-                  { value: "New", label: "New" },
-                  { value: "Acknowledged", label: "Acknowledged" },
-                  { value: "Actioned", label: "Actioned" },
-                ]}
+                items={search?.status}
               />
             </div>
 
@@ -121,19 +109,7 @@ export default function Inbox() {
                     severity: val === "all" ? undefined : Number(val),
                   }))
                 }
-                items={[
-                  { value: "all", label: "All Severities" },
-                  { value: "10", label: "Severity 10 (Critical)" },
-                  { value: "9", label: "Severity 9 (Critical" },
-                  { value: "8", label: "Severity 8 (High)" },
-                  { value: "7", label: "Severity 7 (High)" },
-                  { value: "6", label: "Severity 6 (Medium)" },
-                  { value: "5", label: "Severity 5 (Medium)" },
-                  { value: "4", label: "Severity 4 (Low)" },
-                  { value: "3", label: "Severity 3 (Low)" },
-                  { value: "2", label: "Severity 2 (Minor)" },
-                  { value: "1", label: "Severity 1 (Minor)" },
-                ]}
+                items={search?.severity}
               />
             </div>
           </div>
@@ -142,14 +118,14 @@ export default function Inbox() {
 
       {/* Feedback List */}
       <div className="space-y-3">
-        {data?.length === 0 ? (
+        {inboxItems?.length === 0 ? (
           <Card>
             <CardContent className="text-muted-foreground py-12 text-center">
               No feedback matches your filters. Try adjusting your criteria.
             </CardContent>
           </Card>
         ) : (
-          data?.map((feedback) => {
+          inboxItems?.map((feedback) => {
             const original_timestamp = new Date(feedback.feedback_item?.original_timestamp);
             return (
               <Link key={feedback.id} href={`/app/inbox/${feedback.id}`} className="block">
