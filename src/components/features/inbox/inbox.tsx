@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -12,64 +11,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { mockFeedback, type Sentiment, type Status } from "@/lib/mock-data";
-import { ArrowUpDown, Filter } from "lucide-react";
+import { Filter } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchFeedbackAnalyses } from "@/services/getFeedbackAnalyses";
-
-type SortField = "timestamp" | "severity" | "sentiment";
-type SortOrder = "asc" | "desc";
+import { Filtering } from "@/types/Data/filters";
 
 export default function Inbox() {
-  const [sentimentFilter, setSentimentFilter] = useState<Sentiment | "all">("all");
-  const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
-  const [severityFilter, setSeverityFilter] = useState<string>("all");
-  const [topicFilter, setTopicFilter] = useState<string>("all");
-  const [sortField, setSortField] = useState<SortField>("timestamp");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [filters, setFilters] = useState<Filtering>({});
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["feedbackAnalyses"],
-    queryFn: fetchFeedbackAnalyses,
+    queryKey: ["feedbackAnalyses", filters],
+    queryFn: () => fetchFeedbackAnalyses({ filters }),
   });
-
-  // Get all unique topics
-  const allTopics = useMemo(() => {
-    const topicsSet = new Set<string>();
-    mockFeedback.forEach((f) => f.topics.forEach((t) => topicsSet.add(t)));
-    return Array.from(topicsSet).sort();
-  }, []);
-
-  // Filter and sort feedback
-  const filteredAndSortedFeedback = useMemo(() => {
-    const filtered = mockFeedback.filter((feedback) => {
-      if (sentimentFilter !== "all" && feedback.sentiment !== sentimentFilter) return false;
-      if (statusFilter !== "all" && feedback.status !== statusFilter) return false;
-      if (severityFilter !== "all" && feedback.severity.toString() !== severityFilter) return false;
-      if (topicFilter !== "all" && !feedback.topics.includes(topicFilter)) return false;
-      return true;
-    });
-
-    // Sort
-    filtered.sort((a, b) => {
-      let comparison = 0;
-      switch (sortField) {
-        case "timestamp":
-          comparison = 1; // a.timestamp.getTime() - b.timestamp.getTime();
-          break;
-        case "severity":
-          comparison = a.severity - b.severity;
-          break;
-        case "sentiment":
-          const sentimentOrder = { negative: 0, neutral: 1, positive: 2 };
-          comparison = sentimentOrder[a.sentiment] - sentimentOrder[b.sentiment];
-          break;
-      }
-      return sortOrder === "asc" ? comparison : -comparison;
-    });
-
-    return filtered;
-  }, [sentimentFilter, statusFilter, severityFilter, topicFilter, sortField, sortOrder]);
 
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
@@ -107,6 +60,96 @@ export default function Inbox() {
         <h1 className="mb-2 text-3xl font-bold">Feedback Inbox</h1>
         <p className="text-muted-foreground">Review and triage customer feedback</p>
       </div>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Filters & Sorting
+              </CardTitle>
+              <CardDescription className="mt-1">
+                {[].length} of {[].length} items
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Sentiment</label>
+              <Select
+                value={filters.sentiment || "all"}
+                onValueChange={(val: string) =>
+                  setFilters((prev) => ({ ...prev, sentiment: val === "all" ? undefined : val }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sentiments</SelectItem>
+                  <SelectItem value="positive">Positive</SelectItem>
+                  <SelectItem value="negative">Negative</SelectItem>
+                  <SelectItem value="neutral">Neutral</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <Select
+                value={filters.status || "all"}
+                onValueChange={(val) =>
+                  setFilters((prev) => ({ ...prev, status: val === "all" ? undefined : val }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="New">New</SelectItem>
+                  <SelectItem value="Acknowledged">Acknowledged</SelectItem>
+                  <SelectItem value="Actioned">Actioned</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Severity</label>
+              <Select
+                value={String(filters.severity || "all")}
+                onValueChange={(val) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    severity: val === "all" ? undefined : Number(val),
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                {/* @TODO make this filter with a range selector */}
+                <SelectContent>
+                  <SelectItem value="all">All Severities</SelectItem>
+                  <SelectItem value="10">Severity 10 (Critical)</SelectItem>
+                  <SelectItem value="9">Severity 9 (Critical)</SelectItem>
+                  <SelectItem value="8">Severity 8 (High)</SelectItem>
+                  <SelectItem value="7">Severity 7 (High)</SelectItem>
+                  <SelectItem value="6">Severity 6 (Medium)</SelectItem>
+                  <SelectItem value="5">Severity 5 (Medium)</SelectItem>
+                  <SelectItem value="4">Severity 4 (Low)</SelectItem>
+                  <SelectItem value="3">Severity 3 (Low)</SelectItem>
+                  <SelectItem value="2">Severity 2 (Minor)</SelectItem>
+                  <SelectItem value="1">Severity 1 (Minor)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Feedback List */}
       <div className="space-y-3">
@@ -177,7 +220,7 @@ export default function Inbox() {
                         </div>
                       </div>
                       <div className="text-muted-foreground text-sm whitespace-nowrap">
-                        {original_timestamp.toISOString()}
+                        {original_timestamp.toDateString()}
                       </div>
                     </div>
                   </CardContent>
