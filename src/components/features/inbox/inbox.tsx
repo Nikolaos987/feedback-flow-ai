@@ -15,6 +15,7 @@ import { Filter } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchFeedbackAnalyses } from "@/services/getFeedbackAnalyses";
 import { Filtering } from "@/types/Data/filters";
+import SelectWrapper from "@/components/commons/SelectWrapper";
 
 export default function Inbox() {
   const [filters, setFilters] = useState<Filtering>({});
@@ -79,47 +80,40 @@ export default function Inbox() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Sentiment</label>
-              <Select
+              <SelectWrapper
                 value={filters.sentiment || "all"}
                 onValueChange={(val: string) =>
                   setFilters((prev) => ({ ...prev, sentiment: val === "all" ? undefined : val }))
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Sentiments</SelectItem>
-                  <SelectItem value="positive">Positive</SelectItem>
-                  <SelectItem value="negative">Negative</SelectItem>
-                  <SelectItem value="neutral">Neutral</SelectItem>
-                </SelectContent>
-              </Select>
+                items={[
+                  { value: "all", label: "All Sentiments" },
+                  { value: "positive", label: "Positive" },
+                  { value: "negative", label: "Negative" },
+                  { value: "neutral", label: "Neutral" },
+                ]}
+              />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Status</label>
-              <Select
+              <SelectWrapper
                 value={filters.status || "all"}
                 onValueChange={(val) =>
                   setFilters((prev) => ({ ...prev, status: val === "all" ? undefined : val }))
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="New">New</SelectItem>
-                  <SelectItem value="Acknowledged">Acknowledged</SelectItem>
-                  <SelectItem value="Actioned">Actioned</SelectItem>
-                </SelectContent>
-              </Select>
+                items={[
+                  { value: "all", label: "All Statuses" },
+                  { value: "New", label: "New" },
+                  { value: "Acknowledged", label: "Acknowledged" },
+                  { value: "Actioned", label: "Actioned" },
+                ]}
+              />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Severity</label>
-              <Select
+              {/* @TODO make this filter with a range selector */}
+              <SelectWrapper
                 value={String(filters.severity || "all")}
                 onValueChange={(val) =>
                   setFilters((prev) => ({
@@ -127,25 +121,20 @@ export default function Inbox() {
                     severity: val === "all" ? undefined : Number(val),
                   }))
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                {/* @TODO make this filter with a range selector */}
-                <SelectContent>
-                  <SelectItem value="all">All Severities</SelectItem>
-                  <SelectItem value="10">Severity 10 (Critical)</SelectItem>
-                  <SelectItem value="9">Severity 9 (Critical)</SelectItem>
-                  <SelectItem value="8">Severity 8 (High)</SelectItem>
-                  <SelectItem value="7">Severity 7 (High)</SelectItem>
-                  <SelectItem value="6">Severity 6 (Medium)</SelectItem>
-                  <SelectItem value="5">Severity 5 (Medium)</SelectItem>
-                  <SelectItem value="4">Severity 4 (Low)</SelectItem>
-                  <SelectItem value="3">Severity 3 (Low)</SelectItem>
-                  <SelectItem value="2">Severity 2 (Minor)</SelectItem>
-                  <SelectItem value="1">Severity 1 (Minor)</SelectItem>
-                </SelectContent>
-              </Select>
+                items={[
+                  { value: "all", label: "All Severities" },
+                  { value: "10", label: "Severity 10 (Critical)" },
+                  { value: "9", label: "Severity 9 (Critical" },
+                  { value: "8", label: "Severity 8 (High)" },
+                  { value: "7", label: "Severity 7 (High)" },
+                  { value: "6", label: "Severity 6 (Medium)" },
+                  { value: "5", label: "Severity 5 (Medium)" },
+                  { value: "4", label: "Severity 4 (Low)" },
+                  { value: "3", label: "Severity 3 (Low)" },
+                  { value: "2", label: "Severity 2 (Minor)" },
+                  { value: "1", label: "Severity 1 (Minor)" },
+                ]}
+              />
             </div>
           </div>
         </CardContent>
