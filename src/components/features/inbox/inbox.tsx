@@ -10,6 +10,7 @@ import { fetchFeedbackAnalyses } from "@/services/getFeedbackAnalyses";
 import { Filtering } from "@/types/Data/filters";
 import SelectWrapper from "@/components/commons/SelectWrapper";
 import { FeedbackAnalysis, FiltersMap } from "@/types/FeedbackAi/feedbackAi";
+import TopicsMultiSelect from "@/components/commons/TopicsMultiSelect";
 
 export default function Inbox() {
   const [filters, setFilters] = useState<Filtering>({});
@@ -110,6 +111,22 @@ export default function Inbox() {
                   }))
                 }
                 items={search?.severity}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Topics</label>
+              <TopicsMultiSelect
+                items={search?.topics}
+                value={filters?.topics ?? []}
+                onChange={(topics) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    topics,
+                    // topic: undefined,
+                  }))
+                }
+                placeholder="All Topics"
               />
             </div>
           </div>

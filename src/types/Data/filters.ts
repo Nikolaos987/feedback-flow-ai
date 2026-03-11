@@ -3,4 +3,5 @@ export interface Filtering {
   status?: string;
   severity?: number | string;
   topic?: string;
+  topics?: string[];
 }

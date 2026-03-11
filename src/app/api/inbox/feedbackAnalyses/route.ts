@@ -1,5 +1,4 @@
 import { Prisma, Status } from "@/generated/prisma/client";
-import { FeedbackAnalysisWhereInput } from "@/generated/prisma/models";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -9,6 +8,21 @@ const statusMap: Record<string, Status> = {
   actioned: Status.ACTIONED,
 };
 
+function parseTopics(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((topic) => (typeof topic === "string" ? topic.trim() : ""))
+      .filter((topic) => topic.length > 0);
+  }
+
+  if (typeof value === "string") {
+    const topic = value.trim();
+    return topic ? [topic] : [];
+  }
+
+  return [];
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 
@@ -16,6 +30,10 @@ export async function GET(request: NextRequest) {
   const status = searchParams.get("status");
   const severity = searchParams.get("severity");
   const topic = searchParams.get("topic");
+  const topics = [...searchParams.getAll("topics"), ...searchParams.getAll("topics[]")]
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const selectedTopics = topics.length > 0 ? topics : topic && topic !== "all" ? [topic] : [];
 
   const where: Prisma.FeedbackAnalysisWhereInput = {};
 
@@ -31,8 +49,10 @@ export async function GET(request: NextRequest) {
     if (!Number.isNaN(n)) where.severity_score = n; // or: n
   }
 
-  if (topic && topic !== "all") {
-    where.topics = { array_contains: [topic] }; // Postgres JSON array
+  if (selectedTopics.length > 0) {
+    where.OR = selectedTopics.map((selectedTopic) => ({
+      topics: { array_contains: [selectedTopic] },
+    }));
   }
 
   try {
@@ -46,7 +66,7 @@ export async function GET(request: NextRequest) {
       where,
     });
 
-    const [sentimentsRaw, statusesRaw, severityScoresRaw] = await Promise.all([
+    const [sentimentsRaw, statusesRaw, severityScoresRaw, topicsRaw] = await Promise.all([
       prisma.feedbackAnalysis.findMany({
         select: { sentiment: true },
         distinct: ["sentiment"],
@@ -60,28 +80,45 @@ export async function GET(request: NextRequest) {
         distinct: ["severity_score"],
         orderBy: { severity_score: "desc" },
       }),
+      prisma.feedbackAnalysis.findMany({
+        select: { topics: true },
+      }),
     ]);
 
     const sentiments = [
       { value: "all", label: "All Sentiments" },
-      ...sentimentsRaw.map((s, i) => {
+      ...sentimentsRaw.map((s) => {
         return { value: s.sentiment, label: s.sentiment };
       }),
     ];
     const statuses = [
       { value: "all", label: "All Statuses" },
-      ...statusesRaw.map((s, i) => {
+      ...statusesRaw.map((s) => {
         return { value: s.status, label: s.status };
       }),
     ];
     const severities = [
       { value: "all", label: "All Severities" },
-      ...severityScoresRaw.map((s, i) => {
+      ...severityScoresRaw.map((s) => {
         return { value: s.severity_score, label: s.severity_score };
       }),
     ];
 
-    const search = { sentiment: sentiments, status: statuses, severity: severities };
+    const distinctTopics = Array.from(
+      new Set(topicsRaw.flatMap((analysis) => parseTopics(analysis.topics))),
+    ).sort((first, second) => first.localeCompare(second));
+
+    const topicsSearch = distinctTopics.map((topicValue) => ({
+      value: topicValue,
+      label: topicValue,
+    }));
+
+    const search = {
+      sentiment: sentiments,
+      status: statuses,
+      severity: severities,
+      topics: topicsSearch,
+    };
 
     return NextResponse.json({ data: feedbackAnalyses, search });
   } catch (error) {
