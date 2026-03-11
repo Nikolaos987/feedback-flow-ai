@@ -29,6 +29,8 @@ export async function GET(request: NextRequest) {
   const sentiment = searchParams.get("sentiment");
   const status = searchParams.get("status");
   const severity = searchParams.get("severity");
+  const severityMin = searchParams.get("severityMin");
+  const severityMax = searchParams.get("severityMax");
   const topic = searchParams.get("topic");
   const topics = [...searchParams.getAll("topics"), ...searchParams.getAll("topics[]")]
     .map((item) => item.trim())
@@ -44,9 +46,20 @@ export async function GET(request: NextRequest) {
     if (normalized) where.status = normalized;
   }
 
-  if (severity) {
+  const severityBounds: { gte?: number; lte?: number } = {};
+  if (severityMin) {
+    const n = Number(severityMin);
+    if (!Number.isNaN(n)) severityBounds.gte = n;
+  }
+  if (severityMax) {
+    const n = Number(severityMax);
+    if (!Number.isNaN(n)) severityBounds.lte = n;
+  }
+  if (Object.keys(severityBounds).length > 0) {
+    where.severity_score = severityBounds;
+  } else if (severity) {
     const n = Number(severity);
-    if (!Number.isNaN(n)) where.severity_score = n; // or: n
+    if (!Number.isNaN(n)) where.severity_score = n;
   }
 
   if (selectedTopics.length > 0) {

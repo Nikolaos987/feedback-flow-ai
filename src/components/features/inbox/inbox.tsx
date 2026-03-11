@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import { Filtering } from "@/types/Data/filters";
 import SelectWrapper from "@/components/commons/SelectWrapper";
 import { FeedbackAnalysis, FiltersMap } from "@/types/FeedbackAi/feedbackAi";
 import TopicsMultiSelect from "@/components/commons/TopicsMultiSelect";
+import { Slider } from "@/components/ui/slider";
 
 export default function Inbox() {
   const [filters, setFilters] = useState<Filtering>({});
@@ -23,6 +24,30 @@ export default function Inbox() {
 
   const inboxItems: FeedbackAnalysis[] = data?.data;
   const search: FiltersMap = data?.search;
+
+  const severityValues = useMemo(() => {
+    const raw = search?.severity ?? [];
+    return raw
+      .map((item) => (typeof item.value === "number" ? item.value : Number(item.value)))
+      .filter((value) => Number.isFinite(value)) as number[];
+  }, [search?.severity]);
+
+  const [minSeverity, maxSeverity] = useMemo<[number, number]>(() => {
+    if (severityValues.length === 0) return [0, 10];
+    return [Math.min(...severityValues), Math.max(...severityValues)];
+  }, [severityValues]);
+
+  const defaultSeverityRange = useMemo<[number, number]>(
+    () => [minSeverity, maxSeverity],
+    [minSeverity, maxSeverity],
+  );
+
+  const effectiveSeverityRange = filters.severityRange ?? defaultSeverityRange;
+  const [sliderValue, setSliderValue] = useState<[number, number]>(effectiveSeverityRange);
+
+  useEffect(() => {
+    setSliderValue(effectiveSeverityRange);
+  }, [effectiveSeverityRange[0], effectiveSeverityRange[1]]);
 
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
@@ -101,17 +126,30 @@ export default function Inbox() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Severity</label>
-              {/* @TODO make this filter with a range selector */}
-              <SelectWrapper
-                value={String(filters.severity || "all")}
-                onValueChange={(val) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    severity: val === "all" ? undefined : Number(val),
-                  }))
-                }
-                items={search?.severity}
-              />
+              <div className="space-y-2">
+                <Slider
+                  min={minSeverity}
+                  max={maxSeverity}
+                  step={1}
+                  value={sliderValue}
+                  onValueChange={(val) => setSliderValue(val as [number, number])}
+                  onValueCommit={(val) => {
+                    const [min, max] = val as [number, number];
+                    const isDefault = min === defaultSeverityRange[0] && max === defaultSeverityRange[1];
+                    setFilters((prev) => ({
+                      ...prev,
+                      severityRange: isDefault ? undefined : [min, max],
+                    }));
+                  }}
+                />
+                <div className="text-muted-foreground flex items-center justify-between text-xs">
+                  <span>{minSeverity}</span>
+                  <span>
+                    {sliderValue[0]} - {sliderValue[1]}
+                  </span>
+                  <span>{maxSeverity}</span>
+                </div>
+              </div>
             </div>
             
             <div className="space-y-2">
