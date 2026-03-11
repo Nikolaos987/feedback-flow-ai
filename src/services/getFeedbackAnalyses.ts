@@ -15,6 +15,8 @@ export async function fetchFeedbackAnalyses({ filters }: { filters: Filtering })
         : {}),
     ...(filters.topics && filters.topics.length > 0 ? { topics: filters.topics } : {}),
     ...(filters.topic && filters.topic !== "all" ? { topic: filters.topic } : {}),
+    ...(filters.sortField ? { sortField: filters.sortField } : {}),
+    ...(filters.sortOrder ? { sortOrder: filters.sortOrder } : {}),
   };
 
   const response = await axios.get("/api/inbox/feedbackAnalyses", { params });

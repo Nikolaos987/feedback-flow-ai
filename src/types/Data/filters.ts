@@ -5,4 +5,6 @@ export interface Filtering {
   severityRange?: [number, number];
   topic?: string;
   topics?: string[];
+  sortField?: "timestamp" | "severity" | "sentiment";
+  sortOrder?: "asc" | "desc";
 }

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Filter } from "lucide-react";
+import { ArrowUpDown, Filter } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchFeedbackAnalyses } from "@/services/getFeedbackAnalyses";
 import { Filtering } from "@/types/Data/filters";
@@ -12,9 +12,33 @@ import SelectWrapper from "@/components/commons/SelectWrapper";
 import { FeedbackAnalysis, FiltersMap } from "@/types/FeedbackAi/feedbackAi";
 import TopicsMultiSelect from "@/components/commons/TopicsMultiSelect";
 import { Slider } from "@/components/ui/slider";
+import { Button } from "@/components/ui/button";
 
 export default function Inbox() {
   const [filters, setFilters] = useState<Filtering>({});
+  const sortField = filters.sortField;
+  const sortOrder = filters.sortOrder;
+
+  type SortField = NonNullable<Filtering["sortField"]>;
+  type SortOrder = NonNullable<Filtering["sortOrder"]>;
+  const defaultSortOrder: Record<SortField, SortOrder> = {
+    timestamp: "desc",
+    severity: "desc",
+    sentiment: "desc",
+  };
+
+  const toggleSort = (field: SortField) => {
+    setFilters((prev) => {
+      const isSameField = prev.sortField === field;
+      const nextOrder: SortOrder = isSameField
+        ? prev.sortOrder === "asc"
+          ? "desc"
+          : "asc"
+        : defaultSortOrder[field];
+
+      return { ...prev, sortField: field, sortOrder: nextOrder };
+    });
+  };
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["feedbackAnalyses", filters],
@@ -135,7 +159,8 @@ export default function Inbox() {
                   onValueChange={(val) => setSliderValue(val as [number, number])}
                   onValueCommit={(val) => {
                     const [min, max] = val as [number, number];
-                    const isDefault = min === defaultSeverityRange[0] && max === defaultSeverityRange[1];
+                    const isDefault =
+                      min === defaultSeverityRange[0] && max === defaultSeverityRange[1];
                     setFilters((prev) => ({
                       ...prev,
                       severityRange: isDefault ? undefined : [min, max],
@@ -151,7 +176,7 @@ export default function Inbox() {
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Topics</label>
               <TopicsMultiSelect
@@ -167,6 +192,39 @@ export default function Inbox() {
                 placeholder="All Topics"
               />
             </div>
+          </div>
+
+          <div className="mt-4 flex gap-2 border-t pt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => toggleSort("timestamp")}
+              className={sortField === "timestamp" ? "bg-muted" : ""}
+              aria-pressed={sortField === "timestamp"}
+            >
+              <ArrowUpDown className="mr-1 h-3 w-3" />
+              Date{sortField === "timestamp" ? ` ${sortOrder === "asc" ? "↑" : "↓"}` : ""}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => toggleSort("severity")}
+              className={sortField === "severity" ? "bg-muted" : ""}
+              aria-pressed={sortField === "severity"}
+            >
+              <ArrowUpDown className="mr-1 h-3 w-3" />
+              Severity{sortField === "severity" ? ` ${sortOrder === "asc" ? "↑" : "↓"}` : ""}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => toggleSort("sentiment")}
+              className={sortField === "sentiment" ? "bg-muted" : ""}
+              aria-pressed={sortField === "sentiment"}
+            >
+              <ArrowUpDown className="mr-1 h-3 w-3" />
+              Sentiment{sortField === "sentiment" ? ` ${sortOrder === "asc" ? "↑" : "↓"}` : ""}
+            </Button>
           </div>
         </CardContent>
       </Card>

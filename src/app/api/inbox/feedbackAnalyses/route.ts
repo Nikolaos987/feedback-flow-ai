@@ -32,6 +32,8 @@ export async function GET(request: NextRequest) {
   const severityMin = searchParams.get("severityMin");
   const severityMax = searchParams.get("severityMax");
   const topic = searchParams.get("topic");
+  const sortField = searchParams.get("sortField");
+  const sortOrderParam = searchParams.get("sortOrder");
   const topics = [...searchParams.getAll("topics"), ...searchParams.getAll("topics[]")]
     .map((item) => item.trim())
     .filter(Boolean);
@@ -68,14 +70,34 @@ export async function GET(request: NextRequest) {
     }));
   }
 
+  const sortOrder = sortOrderParam === "asc" || sortOrderParam === "desc" ? sortOrderParam : null;
+  let orderBy: Prisma.FeedbackAnalysisOrderByWithRelationInput[] = [{ created_at: "desc" }];
+
+  if (sortField && sortOrder) {
+    switch (sortField) {
+      case "timestamp":
+        orderBy = [
+          { feedback_item: { original_timestamp: sortOrder } },
+          { created_at: "desc" },
+        ];
+        break;
+      case "severity":
+        orderBy = [{ severity_score: sortOrder }, { created_at: "desc" }];
+        break;
+      case "sentiment":
+        orderBy = [{ sentiment: sortOrder }, { created_at: "desc" }];
+        break;
+      default:
+        break;
+    }
+  }
+
   try {
     const feedbackAnalyses = await prisma.feedbackAnalysis.findMany({
       include: {
         feedback_item: true,
       },
-      orderBy: {
-        created_at: "desc",
-      },
+      orderBy,
       where,
     });
 
