@@ -31,12 +31,12 @@ import { signOutAction } from "@/app/actions/userActions";
 const navItems = [
   {
     title: "Dashboard",
-    href: "/app/dashboard",
+    href: "/dashboard",
     icon: BarChart3,
   },
   {
     title: "Inbox",
-    href: "/app/inbox",
+    href: "/inbox",
     icon: Inbox,
   },
   {
