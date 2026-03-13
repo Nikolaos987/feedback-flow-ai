@@ -34,6 +34,8 @@ export async function GET(request: NextRequest) {
   const topic = searchParams.get("topic");
   const sortField = searchParams.get("sortField");
   const sortOrderParam = searchParams.get("sortOrder");
+  const pageParam = searchParams.get("page");
+  const pageSizeParam = searchParams.get("pageSize");
   const topics = [...searchParams.getAll("topics"), ...searchParams.getAll("topics[]")]
     .map((item) => item.trim())
     .filter(Boolean);
@@ -93,13 +95,24 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const feedbackAnalyses = await prisma.feedbackAnalysis.findMany({
-      include: {
-        feedback_item: true,
-      },
-      orderBy,
-      where,
-    });
+    const parsedPage = Number.parseInt(pageParam ?? "", 10);
+    const parsedPageSize = Number.parseInt(pageSizeParam ?? "", 10);
+    const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+    const pageSize = Number.isFinite(parsedPageSize) && parsedPageSize > 0 ? parsedPageSize : 5;
+    const skip = (page - 1) * pageSize;
+
+    const [feedbackAnalyses, total] = await prisma.$transaction([
+      prisma.feedbackAnalysis.findMany({
+        include: {
+          feedback_item: true,
+        },
+        orderBy,
+        where,
+        skip,
+        take: pageSize,
+      }),
+      prisma.feedbackAnalysis.count({ where }),
+    ]);
 
     const [sentimentsRaw, statusesRaw, severityScoresRaw, topicsRaw] = await Promise.all([
       prisma.feedbackAnalysis.findMany({
@@ -155,7 +168,18 @@ export async function GET(request: NextRequest) {
       topics: topicsSearch,
     };
 
-    return NextResponse.json({ data: feedbackAnalyses, search });
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+    return NextResponse.json({
+      data: feedbackAnalyses,
+      search,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages,
+      },
+    });
   } catch (error) {
     console.error("Failed to fetch feedback analyses data", error);
     return NextResponse.json({ error: "Failed to fetch feedback analyses data" }, { status: 500 });

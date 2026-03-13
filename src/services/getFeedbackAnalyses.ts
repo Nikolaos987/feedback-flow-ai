@@ -1,7 +1,20 @@
 import { Filtering } from "@/types/Data/filters";
 import axios from "axios";
 
-export async function fetchFeedbackAnalyses({ filters }: { filters: Filtering }) {
+export async function fetchFeedbackAnalyses({
+  filters,
+  page = 1,
+  pageSize = 5,
+}: {
+  filters: Filtering;
+  page?: number;
+  pageSize?: number;
+}) {
+  const parsedPage = Number(page);
+  const parsedPageSize = Number(pageSize);
+  const safePage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const safePageSize =
+    Number.isFinite(parsedPageSize) && parsedPageSize > 0 ? parsedPageSize : 5;
   const severityRange =
     filters.severityRange && filters.severityRange.length === 2 ? filters.severityRange : null;
 
@@ -17,6 +30,8 @@ export async function fetchFeedbackAnalyses({ filters }: { filters: Filtering })
     ...(filters.topic && filters.topic !== "all" ? { topic: filters.topic } : {}),
     ...(filters.sortField ? { sortField: filters.sortField } : {}),
     ...(filters.sortOrder ? { sortOrder: filters.sortOrder } : {}),
+    page: safePage,
+    pageSize: safePageSize,
   };
 
   const response = await axios.get("/api/inbox/feedbackAnalyses", { params });

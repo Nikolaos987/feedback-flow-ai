@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,9 +13,22 @@ import { FeedbackAnalysis, FiltersMap } from "@/types/FeedbackAi/feedbackAi";
 import TopicsMultiSelect from "@/components/commons/TopicsMultiSelect";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function Inbox() {
   const [filters, setFilters] = useState<Filtering>({});
+  const [page, setPage] = useState(1);
+  const [goToPage, setGoToPage] = useState("1");
+  const pageSize = 5;
   const sortField = filters.sortField;
   const sortOrder = filters.sortOrder;
 
@@ -40,14 +53,51 @@ export default function Inbox() {
     });
   };
 
+  useEffect(() => {
+    setPage(1);
+  }, [filters]);
+
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["feedbackAnalyses", filters],
-    queryFn: () => fetchFeedbackAnalyses({ filters }),
+    queryKey: ["feedbackAnalyses", filters, page, pageSize],
+    queryFn: () => fetchFeedbackAnalyses({ filters, page, pageSize }),
     placeholderData: (prev) => prev,
   });
 
   const inboxItems: FeedbackAnalysis[] = data?.data;
   const search: FiltersMap = data?.search;
+  const pagination = data?.pagination as
+    | { page: number; pageSize: number; total: number; totalPages: number }
+    | undefined;
+  const totalPages = pagination?.totalPages ?? 1;
+  const totalItems = pagination?.total ?? 0;
+  const currentPage = pagination?.page ?? page;
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  useEffect(() => {
+    setGoToPage(String(currentPage));
+  }, [currentPage]);
+
+  const pageNumbers = useMemo(() => {
+    if (totalPages <= 1) return [1];
+    const pages = new Set<number>([1, totalPages]);
+    for (let candidate = currentPage - 1; candidate <= currentPage + 1; candidate += 1) {
+      if (candidate > 1 && candidate < totalPages) pages.add(candidate);
+    }
+    return Array.from(pages).sort((a, b) => a - b);
+  }, [currentPage, totalPages]);
+
+  const handleGoToPage = () => {
+    const parsed = Number.parseInt(goToPage, 10);
+    const clamped = Number.isFinite(parsed)
+      ? Math.min(Math.max(parsed, 1), totalPages)
+      : currentPage;
+    setPage(clamped);
+  };
 
   const severityValues = useMemo(() => {
     const raw = search?.severity ?? [];
@@ -119,7 +169,7 @@ export default function Inbox() {
                 Filters & Sorting
               </CardTitle>
               <CardDescription className="mt-1">
-                {[].length} of {[].length} items
+                {inboxItems?.length ?? 0} of {totalItems} items
               </CardDescription>
             </div>
           </div>
@@ -307,6 +357,94 @@ export default function Inbox() {
             );
           })
         )}
+      </div>
+
+      <div className="mt-6">
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                aria-disabled={currentPage <= 1 || isLoading || isError}
+                tabIndex={currentPage <= 1 || isLoading || isError ? -1 : undefined}
+                className={
+                  currentPage <= 1 || isLoading || isError ? "pointer-events-none opacity-50" : ""
+                }
+                onClick={(event) => {
+                  event.preventDefault();
+                  if (currentPage > 1) {
+                    setPage(currentPage - 1);
+                  }
+                }}
+              />
+            </PaginationItem>
+
+            {pageNumbers.map((pageNumber, index) => {
+              const previous = pageNumbers[index - 1];
+              const showEllipsis = index > 0 && pageNumber - previous > 1;
+              return (
+                <Fragment key={pageNumber}>
+                  {showEllipsis ? (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : null}
+                  <PaginationItem>
+                    <PaginationLink
+                      href="#"
+                      isActive={pageNumber === currentPage}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setPage(pageNumber);
+                      }}
+                    >
+                      {pageNumber}
+                    </PaginationLink>
+                  </PaginationItem>
+                </Fragment>
+              );
+            })}
+
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                aria-disabled={currentPage >= totalPages || isLoading || isError}
+                tabIndex={currentPage >= totalPages || isLoading || isError ? -1 : undefined}
+                className={
+                  currentPage >= totalPages || isLoading || isError
+                    ? "pointer-events-none opacity-50"
+                    : ""
+                }
+                onClick={(event) => {
+                  event.preventDefault();
+                  if (currentPage < totalPages) {
+                    setPage(currentPage + 1);
+                  }
+                }}
+              />
+            </PaginationItem>
+
+            <PaginationItem className="flex items-center gap-2">
+              <span className="text-muted-foreground text-sm whitespace-nowrap">Go to page</span>
+              <Input
+                type="number"
+                min={1}
+                max={totalPages}
+                value={goToPage}
+                onChange={(event) => setGoToPage(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    handleGoToPage();
+                  }
+                }}
+                className="h-9 w-16 text-center"
+              />
+              <Button size="sm" onClick={handleGoToPage}>
+                Go
+              </Button>
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
     </div>
   );
