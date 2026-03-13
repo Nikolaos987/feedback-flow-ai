@@ -28,7 +28,7 @@ export default function Inbox() {
   const [filters, setFilters] = useState<Filtering>({});
   const [page, setPage] = useState(1);
   const [goToPage, setGoToPage] = useState("1");
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(10);
   const sortField = filters.sortField;
   const sortOrder = filters.sortOrder;
 
