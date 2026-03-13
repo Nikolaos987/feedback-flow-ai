@@ -302,7 +302,7 @@ export default function Inbox() {
           inboxItems?.map((feedback) => {
             const original_timestamp = new Date(feedback.feedback_item?.original_timestamp);
             return (
-              <Link key={feedback.id} href={`/inbox/${feedback.id}`} className="block">
+              <Link key={feedback.id} href={`/inbox/view/${feedback.id}`} className="block">
                 <Card
                   className={`group cursor-pointer transition-colors ${
                     feedback.severity_score >= 7
