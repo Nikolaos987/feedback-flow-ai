@@ -28,7 +28,7 @@ export default function Inbox() {
   const [filters, setFilters] = useState<Filtering>({});
   const [page, setPage] = useState(1);
   const [goToPage, setGoToPage] = useState("1");
-  const pageSize = 5;
+  const [pageSize, setPageSize] = useState(5);
   const sortField = filters.sortField;
   const sortOrder = filters.sortOrder;
 
@@ -55,7 +55,7 @@ export default function Inbox() {
 
   useEffect(() => {
     setPage(1);
-  }, [filters]);
+  }, [filters, pageSize]);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["feedbackAnalyses", filters, page, pageSize],
@@ -90,6 +90,15 @@ export default function Inbox() {
     }
     return Array.from(pages).sort((a, b) => a - b);
   }, [currentPage, totalPages]);
+
+  const pageSizeOptions = useMemo(
+    () => [
+      { value: "5", label: "5" },
+      { value: "10", label: "10" },
+      { value: "20", label: "20" },
+    ],
+    [],
+  );
 
   const handleGoToPage = () => {
     const parsed = Number.parseInt(goToPage, 10);
@@ -423,7 +432,6 @@ export default function Inbox() {
                 }}
               />
             </PaginationItem>
-
             <PaginationItem className="flex items-center gap-2">
               <span className="text-muted-foreground text-sm whitespace-nowrap">Go to page</span>
               <Input
@@ -443,6 +451,17 @@ export default function Inbox() {
                 Go
               </Button>
             </PaginationItem>
+
+            <PaginationItem className="flex items-center gap-2">
+              <span className="text-muted-foreground text-sm whitespace-nowrap">Page size</span>
+              <SelectWrapper
+                value={String(pageSize)}
+                onValueChange={(value) => setPageSize(Number(value))}
+                items={pageSizeOptions}
+                className="h-9 w-20"
+              />
+            </PaginationItem>
+
           </PaginationContent>
         </Pagination>
       </div>
