@@ -184,6 +184,7 @@ export default function Inbox() {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Filters */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Sentiment</label>
@@ -253,6 +254,7 @@ export default function Inbox() {
             </div>
           </div>
 
+          {/* Sorting Filters */}
           <div className="mt-4 flex gap-2 border-t pt-4">
             <Button
               variant="outline"
@@ -300,7 +302,7 @@ export default function Inbox() {
           inboxItems?.map((feedback) => {
             const original_timestamp = new Date(feedback.feedback_item?.original_timestamp);
             return (
-              <Link key={feedback.id} href={`/app/inbox/${feedback.id}`} className="block">
+              <Link key={feedback.id} href={`/inbox/${feedback.id}`} className="block">
                 <Card
                   className={`group cursor-pointer transition-colors ${
                     feedback.severity_score >= 7
@@ -364,6 +366,7 @@ export default function Inbox() {
         )}
       </div>
 
+      {/* Pagination */}
       <div className="mt-6">
         <Pagination>
           <PaginationContent className="flex flex-col gap-6">
