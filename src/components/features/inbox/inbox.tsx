@@ -332,10 +332,6 @@ export default function Inbox() {
                           <span className={`text-sm ${getSeverityColor(feedback.severity_score)}`}>
                             Severity {feedback.severity_score}
                           </span>
-                          <span className="text-muted-foreground text-sm">•</span>
-                          <span className="text-muted-foreground text-sm">
-                            {feedback.feedback_item?.source}
-                          </span>
                           {feedback.feedback_item?.source && (
                             <>
                               <span className="text-muted-foreground text-sm">•</span>
@@ -370,98 +366,102 @@ export default function Inbox() {
 
       <div className="mt-6">
         <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                aria-disabled={currentPage <= 1 || isLoading || isError}
-                tabIndex={currentPage <= 1 || isLoading || isError ? -1 : undefined}
-                className={
-                  currentPage <= 1 || isLoading || isError ? "pointer-events-none opacity-50" : ""
-                }
-                onClick={(event) => {
-                  event.preventDefault();
-                  if (currentPage > 1) {
-                    setPage(currentPage - 1);
+          <PaginationContent className="flex flex-col gap-6">
+            <div className="flex">
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  aria-disabled={currentPage <= 1 || isLoading || isError}
+                  tabIndex={currentPage <= 1 || isLoading || isError ? -1 : undefined}
+                  className={
+                    currentPage <= 1 || isLoading || isError ? "pointer-events-none opacity-50" : ""
                   }
-                }}
-              />
-            </PaginationItem>
+                  onClick={(event) => {
+                    event.preventDefault();
+                    if (currentPage > 1) {
+                      setPage(currentPage - 1);
+                    }
+                  }}
+                />
+              </PaginationItem>
 
-            {pageNumbers.map((pageNumber, index) => {
-              const previous = pageNumbers[index - 1];
-              const showEllipsis = index > 0 && pageNumber - previous > 1;
-              return (
-                <Fragment key={pageNumber}>
-                  {showEllipsis ? (
+              {pageNumbers.map((pageNumber, index) => {
+                const previous = pageNumbers[index - 1];
+                const showEllipsis = index > 0 && pageNumber - previous > 1;
+                return (
+                  <Fragment key={pageNumber}>
+                    {showEllipsis ? (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    ) : null}
                     <PaginationItem>
-                      <PaginationEllipsis />
+                      <PaginationLink
+                        href="#"
+                        isActive={pageNumber === currentPage}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          setPage(pageNumber);
+                        }}
+                      >
+                        {pageNumber}
+                      </PaginationLink>
                     </PaginationItem>
-                  ) : null}
-                  <PaginationItem>
-                    <PaginationLink
-                      href="#"
-                      isActive={pageNumber === currentPage}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        setPage(pageNumber);
-                      }}
-                    >
-                      {pageNumber}
-                    </PaginationLink>
-                  </PaginationItem>
-                </Fragment>
-              );
-            })}
+                  </Fragment>
+                );
+              })}
 
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                aria-disabled={currentPage >= totalPages || isLoading || isError}
-                tabIndex={currentPage >= totalPages || isLoading || isError ? -1 : undefined}
-                className={
-                  currentPage >= totalPages || isLoading || isError
-                    ? "pointer-events-none opacity-50"
-                    : ""
-                }
-                onClick={(event) => {
-                  event.preventDefault();
-                  if (currentPage < totalPages) {
-                    setPage(currentPage + 1);
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  aria-disabled={currentPage >= totalPages || isLoading || isError}
+                  tabIndex={currentPage >= totalPages || isLoading || isError ? -1 : undefined}
+                  className={
+                    currentPage >= totalPages || isLoading || isError
+                      ? "pointer-events-none opacity-50"
+                      : ""
                   }
-                }}
-              />
-            </PaginationItem>
-            <PaginationItem className="flex items-center gap-2">
-              <span className="text-muted-foreground text-sm whitespace-nowrap">Go to page</span>
-              <Input
-                type="number"
-                min={1}
-                max={totalPages}
-                value={goToPage}
-                onChange={(event) => setGoToPage(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    handleGoToPage();
-                  }
-                }}
-                className="h-9 w-16 text-center"
-              />
-              <Button size="sm" onClick={handleGoToPage}>
-                Go
-              </Button>
-            </PaginationItem>
+                  onClick={(event) => {
+                    event.preventDefault();
+                    if (currentPage < totalPages) {
+                      setPage(currentPage + 1);
+                    }
+                  }}
+                />
+              </PaginationItem>
 
-            <PaginationItem className="flex items-center gap-2">
-              <span className="text-muted-foreground text-sm whitespace-nowrap">Page size</span>
-              <SelectWrapper
-                value={String(pageSize)}
-                onValueChange={(value) => setPageSize(Number(value))}
-                items={pageSizeOptions}
-                className="h-9 w-20"
-              />
-            </PaginationItem>
+              <PaginationItem className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm whitespace-nowrap">Go to page</span>
+                <Input
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  value={goToPage}
+                  onChange={(event) => setGoToPage(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      handleGoToPage();
+                    }
+                  }}
+                  className="h-9 w-16 text-center"
+                />
+                <Button size="sm" onClick={handleGoToPage}>
+                  Go
+                </Button>
+              </PaginationItem>
+            </div>
 
+            <div className="flex gap-8">
+              <PaginationItem className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm whitespace-nowrap">Page size</span>
+                <SelectWrapper
+                  value={String(pageSize)}
+                  onValueChange={(value) => setPageSize(Number(value))}
+                  items={pageSizeOptions}
+                  className="h-9 w-20"
+                />
+              </PaginationItem>
+            </div>
           </PaginationContent>
         </Pagination>
       </div>
