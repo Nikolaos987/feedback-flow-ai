@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchFeedbackItem } from "@/services/getFeedbackItem";
+import { useRouter } from "next/navigation";
 
 function SeverityBar({ severity }: { severity: number }) {
   // Each bar represents 2 points (0-10 score → 5 bars)
@@ -40,6 +41,8 @@ function SeverityBar({ severity }: { severity: number }) {
 }
 
 function InboxItemDetail({ id }: { id: string }) {
+  const router = useRouter();
+
   const { data, isLoading, isFetching, isError } = useQuery({
     queryKey: ["feedbackItemAnalysis"],
     queryFn: () => fetchFeedbackItem(id),
@@ -108,11 +111,9 @@ function InboxItemDetail({ id }: { id: string }) {
       <div className="mb-8 flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="mb-3 flex items-center gap-3">
-            <Link href="/inbox">
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
+            <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
             <h1 className="text-2xl font-bold text-balance">{feedbackItemAnalysis?.summary}</h1>
           </div>
           <div className="ml-11 flex flex-wrap items-center gap-3">
@@ -190,7 +191,8 @@ function InboxItemDetail({ id }: { id: string }) {
                 <div className="flex items-center gap-3">
                   <Badge
                     variant="outline"
-                    className={`${getSentimentColor(feedbackItemAnalysis?.sentiment)} px-3 py-1 text-base`}
+                    className={`${getSentimentColor(feedbackItemAnalysis?.sentiment)} px-3 py-1
+                      text-base`}
                   >
                     {feedbackItemAnalysis?.sentiment.charAt(0).toUpperCase() +
                       feedbackItemAnalysis?.sentiment.slice(1)}
