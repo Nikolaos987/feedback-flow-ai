@@ -270,7 +270,7 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-4">
               {highSeverityFeedbackData.map((feedback) => (
-                <Link key={feedback.id} href={`/app/inbox/${feedback.id}`}>
+                <Link key={feedback.id} href={`/inbox/view/${feedback.id}`}>
                   <div
                     className={`hover:bg-muted/50 flex cursor-pointer items-start gap-4 rounded-lg
                       border p-4 transition-colors`}

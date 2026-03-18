@@ -33,31 +33,32 @@ function SeverityBar({ severity }: { severity: number }) {
   return (
     <div className="flex items-center gap-1.5">
       {Array.from({ length: 5 }, (_, i) => (
-        <div
-          key={i}
-          className={`h-2.5 w-6 rounded-sm ${i < filledBars ? barColor : "bg-muted"}`}
-        />
+        <div key={i} className={`h-2.5 w-6 rounded-sm ${i < filledBars ? barColor : "bg-muted"}`} />
       ))}
     </div>
   );
 }
 
 function InboxItemDetail({ id }: { id: string }) {
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isFetching, isError } = useQuery({
     queryKey: ["feedbackItem"],
     queryFn: () => fetchFeedbackItem(id),
     placeholderData: (prev) => prev,
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Loading page...</div>;
+  }
+
+  if (isFetching) {
+    return <div>Fetching data...</div>;
   }
 
   if (isError) {
     return <div>Error loading feedback</div>;
   }
 
-  // !TODO add type 
+  // !TODO add type
   const feedbackItem = data?.data;
 
   const original_timestamp = new Date(feedbackItem?.feedback_item?.original_timestamp);
@@ -234,6 +235,7 @@ function InboxItemDetail({ id }: { id: string }) {
                   <span className="text-sm font-medium">Extracted Topics</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  {/* !TODO make type for topics */}
                   {feedbackItem?.topics.map((topic) => (
                     <Badge key={topic} variant="secondary" className="text-sm">
                       {topic}

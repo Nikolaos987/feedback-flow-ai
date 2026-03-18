@@ -34,6 +34,7 @@ export async function GET() {
           orderBy: { created_at: "desc" },
           take: 1,
           select: {
+            id: true,
             sentiment: true,
             topics: true,
             severity_score: true,
@@ -53,7 +54,7 @@ export async function GET() {
 
       return [
         {
-          id: item.id,
+          id: analysis.id,
           source: item.source,
           sentiment: sentimentValue,
           severity: analysis.severity_score,
