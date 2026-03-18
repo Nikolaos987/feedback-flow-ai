@@ -41,7 +41,7 @@ function SeverityBar({ severity }: { severity: number }) {
 
 function InboxItemDetail({ id }: { id: string }) {
   const { data, isLoading, isFetching, isError } = useQuery({
-    queryKey: ["feedbackItem"],
+    queryKey: ["feedbackItemAnalysis"],
     queryFn: () => fetchFeedbackItem(id),
     placeholderData: (prev) => prev,
   });
@@ -58,10 +58,9 @@ function InboxItemDetail({ id }: { id: string }) {
     return <div>Error loading feedback</div>;
   }
 
-  // !TODO add type
-  const feedbackItem = data?.data;
+  const feedbackItemAnalysis = data!;
 
-  const original_timestamp = new Date(feedbackItem?.feedback_item?.original_timestamp);
+  const original_timestamp = new Date(feedbackItemAnalysis?.feedback_item?.original_timestamp);
 
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
@@ -114,22 +113,22 @@ function InboxItemDetail({ id }: { id: string }) {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
-            <h1 className="text-2xl font-bold text-balance">{feedbackItem?.summary}</h1>
+            <h1 className="text-2xl font-bold text-balance">{feedbackItemAnalysis?.summary}</h1>
           </div>
           <div className="ml-11 flex flex-wrap items-center gap-3">
-            {/* <Badge variant="outline" className={getSentimentColor(data.sentiment)}> */}
-            {feedbackItem?.sentiment}
-            {/* </Badge> */}
-            <Badge variant="outline" className={getStatusColor(feedbackItem?.status)}>
-              {feedbackItem?.status}
+            <Badge variant="outline" className={getSentimentColor(feedbackItemAnalysis?.sentiment)}>
+              {feedbackItemAnalysis?.sentiment}
             </Badge>
-            {feedbackItem?.severity_score > 8 && (
+            <Badge variant="outline" className={getStatusColor(feedbackItemAnalysis?.status)}>
+              {feedbackItemAnalysis?.status}
+            </Badge>
+            {feedbackItemAnalysis?.severity_score > 8 && (
               <Badge
                 variant="outline"
                 className="text-destructive bg-destructive/10 border-destructive/20"
               >
                 <AlertCircle className="mr-1 h-3 w-3" />
-                {getSeverityLabel(feedbackItem?.severity_score)} Priority
+                {getSeverityLabel(feedbackItemAnalysis?.severity_score)} Priority
               </Badge>
             )}
           </div>
@@ -146,10 +145,15 @@ function InboxItemDetail({ id }: { id: string }) {
               Customer Feedback
             </CardTitle>
             <CardDescription className="flex flex-wrap items-center gap-4">
-              <span className="flex items-center gap-1">
+              <Link
+                href={feedbackItemAnalysis?.feedback_item?.source}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex cursor-pointer items-center gap-1 text-blue-500/60 hover:underline"
+              >
                 <ExternalLink className="h-3 w-3" />
-                {feedbackItem?.feedback_item.source}
-              </span>
+                {feedbackItemAnalysis?.feedback_item?.source}
+              </Link>
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 at {original_timestamp.toDateString()}
@@ -161,13 +165,13 @@ function InboxItemDetail({ id }: { id: string }) {
               className="border-primary/30 text-foreground border-l-4 py-2 pl-4 leading-relaxed
                 italic"
             >
-              {feedbackItem?.feedback_item?.raw_content}
+              {feedbackItemAnalysis?.feedback_item?.raw_content}
             </blockquote>
           </CardContent>
         </Card>
 
         {/* AI Analysis - Detailed */}
-        <Card className={feedbackItem?.severity >= 4 ? "border-destructive/50" : ""}>
+        <Card className={feedbackItemAnalysis?.severity_score > 8 ? "border-destructive/50" : ""}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Brain className="text-primary h-5 w-5" />
@@ -186,15 +190,15 @@ function InboxItemDetail({ id }: { id: string }) {
                 <div className="flex items-center gap-3">
                   <Badge
                     variant="outline"
-                    className={`${getSentimentColor(feedbackItem?.sentiment)} px-3 py-1 text-base`}
+                    className={`${getSentimentColor(feedbackItemAnalysis?.sentiment)} px-3 py-1 text-base`}
                   >
-                    {feedbackItem?.sentiment.charAt(0).toUpperCase() +
-                      feedbackItem?.sentiment.slice(1)}
+                    {feedbackItemAnalysis?.sentiment.charAt(0).toUpperCase() +
+                      feedbackItemAnalysis?.sentiment.slice(1)}
                   </Badge>
                   <span className="text-muted-foreground text-xs">
-                    {feedbackItem?.sentiment === "negative"
+                    {feedbackItemAnalysis?.sentiment === "negative"
                       ? "Customer expressed frustration or dissatisfaction"
-                      : feedbackItem?.sentiment === "positive"
+                      : feedbackItemAnalysis?.sentiment === "positive"
                         ? "Customer expressed satisfaction or appreciation"
                         : "Customer provided neutral or balanced feedback"}
                   </span>
@@ -205,24 +209,24 @@ function InboxItemDetail({ id }: { id: string }) {
               <div className="bg-muted/50 space-y-2 rounded-lg p-4">
                 <div className="flex items-center gap-2">
                   <AlertCircle
-                    className={`h-4 w-4 ${getSeverityColor(feedbackItem?.severity_score)}`}
+                    className={`h-4 w-4 ${getSeverityColor(feedbackItemAnalysis?.severity_score)}`}
                   />
                   <span className="text-sm font-medium">Severity Assessment</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span
                     className={`text-2xl font-bold
-                      ${getSeverityColor(feedbackItem?.severity_score)}`}
+                      ${getSeverityColor(feedbackItemAnalysis?.severity_score)}`}
                   >
-                    {feedbackItem?.severity_score}/10
+                    {feedbackItemAnalysis?.severity_score}/10
                   </span>
                   <div className="space-y-1">
-                    <SeverityBar severity={feedbackItem?.severity_score} />
+                    <SeverityBar severity={feedbackItemAnalysis?.severity_score} />
                     <span
                       className={`text-xs font-medium
-                        ${getSeverityColor(feedbackItem?.severity_score)}`}
+                        ${getSeverityColor(feedbackItemAnalysis?.severity_score)}`}
                     >
-                      {getSeverityLabel(feedbackItem?.severity_score)}
+                      {getSeverityLabel(feedbackItemAnalysis?.severity_score)}
                     </span>
                   </div>
                 </div>
@@ -235,8 +239,7 @@ function InboxItemDetail({ id }: { id: string }) {
                   <span className="text-sm font-medium">Extracted Topics</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {/* !TODO make type for topics */}
-                  {feedbackItem?.topics.map((topic) => (
+                  {feedbackItemAnalysis?.topics.map((topic) => (
                     <Badge key={topic} variant="secondary" className="text-sm">
                       {topic}
                     </Badge>
@@ -251,7 +254,7 @@ function InboxItemDetail({ id }: { id: string }) {
                   <span className="text-sm font-medium">AI Summary</span>
                 </div>
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  {feedbackItem?.summary}
+                  {feedbackItemAnalysis?.summary}
                 </p>
               </div>
             </div>

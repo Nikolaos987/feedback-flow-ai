@@ -13,12 +13,17 @@ export async function GET(request: NextRequest) {
   try {
     const feedbackAnalysis = await prisma.feedbackAnalysis.findUnique({
       where: { id },
-      include: {
+      select: {
+        summary: true,
+        sentiment: true,
+        status: true,
+        severity_score: true,
+        topics: true,
         feedback_item: {
-          include: {
-            analyses: {
-              orderBy: { created_at: "desc" },
-            },
+          select: {
+            source: true,
+            original_timestamp: true,
+            raw_content: true,
           },
         },
       },

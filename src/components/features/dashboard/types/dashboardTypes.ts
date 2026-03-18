@@ -21,6 +21,18 @@ export type TopicPoint = {
   count: number;
   fillKey: number;
 };
+export type FeedbackItemAnalysis = {
+  summary: string;
+  sentiment: string;
+  status: string;
+  severity_score: number;
+  topics: string[];
+  feedback_item: {
+    source: string;
+    original_timestamp: Date;
+    raw_content: string;
+  };
+};
 
 export type HighSeverityFeedback = {
   id: string;
