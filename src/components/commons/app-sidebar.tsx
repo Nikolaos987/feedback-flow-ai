@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/app/actions/userActions";
+import { requireSession } from "@/lib/session";
+import { mapSessionUserToSidebarUser } from "@/lib/userFunctions";
 
 const navItems = [
   {
@@ -46,15 +48,13 @@ const navItems = [
   },
 ];
 
-export default function AppSidebar() {
+export default function AppSidebar({
+  session,
+}: {
+  session: Awaited<ReturnType<typeof requireSession>>;
+}) {
   const pathname = usePathname();
-
-  const mockUser = {
-    name: "Sarah Johnson",
-    email: "sarah.johnson@company.com",
-    avatar: "",
-    initials: "SJ",
-  };
+  const user = mapSessionUserToSidebarUser(session);
 
   return (
     <Sidebar>
@@ -97,13 +97,15 @@ export default function AppSidebar() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="w-full justify-start gap-3 px-2">
               <Avatar className="h-9 w-9">
-                <AvatarImage src={mockUser.avatar} alt={mockUser.name} />
-                <AvatarFallback>{mockUser.initials}</AvatarFallback>
+                {user?.avatar && (
+                  <AvatarImage src={user?.avatar} alt={user?.name} referrerPolicy="no-referrer" />
+                )}
+                <AvatarFallback>{user.initials}</AvatarFallback>
               </Avatar>
 
               <div className="flex min-w-0 flex-1 flex-col items-start text-left">
-                <span className="truncate text-sm font-medium">{mockUser.name}</span>
-                <span className="text-muted-foreground truncate text-xs">{mockUser.email}</span>
+                <span className="truncate text-sm font-medium">{user.name}</span>
+                <span className="text-muted-foreground truncate text-xs">{user.email}</span>
               </div>
             </Button>
           </DropdownMenuTrigger>
@@ -111,8 +113,8 @@ export default function AppSidebar() {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div className="flex flex-col gap-1">
-                <p className="text-sm font-medium">{mockUser.name}</p>
-                <p className="text-muted-foreground text-xs">{mockUser.email}</p>
+                <p className="text-sm font-medium">{user.name}</p>
+                <p className="text-muted-foreground text-xs">{user.email}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

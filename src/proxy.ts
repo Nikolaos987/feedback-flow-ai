@@ -19,5 +19,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // runtime: "nodejs", // Required for auth.api calls
-  matcher: ["/dashboard"], // Specify the routes the middleware applies to
+  matcher: ["/dashboard/:path*", "/inbox/:path*"], // Specify the routes the middleware applies to
 };
