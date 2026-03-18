@@ -123,13 +123,13 @@ function InboxItemDetail({ id }: { id: string }) {
             <Badge variant="outline" className={getStatusColor(feedbackItem?.status)}>
               {feedbackItem?.status}
             </Badge>
-            {feedbackItem?.severity >= 4 && (
+            {feedbackItem?.severity_score > 8 && (
               <Badge
                 variant="outline"
                 className="text-destructive bg-destructive/10 border-destructive/20"
               >
                 <AlertCircle className="mr-1 h-3 w-3" />
-                {getSeverityLabel(data.severity)} Priority
+                {getSeverityLabel(feedbackItem?.severity_score)} Priority
               </Badge>
             )}
           </div>
