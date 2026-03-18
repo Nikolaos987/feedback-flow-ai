@@ -60,10 +60,10 @@ export default function AppSidebar() {
     <Sidebar>
       {/* Header / Brand */}
       <SidebarHeader>
-        <div className="flex h-16 items-center gap-2 px-4 font-semibold">
+        <Link href={"/"} className="flex h-16 items-center gap-2 px-4 font-semibold">
           <Sparkles className="text-sidebar-primary h-5 w-5" />
           <span>FeedbackFlow AI</span>
-        </div>
+        </Link>
       </SidebarHeader>
 
       {/* Navigation */}

@@ -10,10 +10,10 @@ export default function Navbar() {
         overflow-hidden border-b backdrop-blur"
     >
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-        <div className="flex items-center gap-2 text-xl font-semibold">
+        <Link href={"/"} className="flex items-center gap-2 text-xl font-semibold">
           <Sparkles className="text-primary h-6 w-6" />
           FeedbackFlow AI
-        </div>
+        </Link>
         <nav className="flex items-center gap-6">
           <Link
             href="/#features"
