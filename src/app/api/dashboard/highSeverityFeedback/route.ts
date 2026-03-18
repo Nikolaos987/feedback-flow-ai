@@ -66,7 +66,7 @@ export async function GET() {
     });
 
     const highSeverityFeedback = analyzedFeedback
-      .filter((feedback) => feedback.severity > 8)
+      .filter((feedback) => feedback.severity > 6)
       .sort(
         (first, second) =>
           second.severity - first.severity ||
