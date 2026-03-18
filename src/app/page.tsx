@@ -33,7 +33,7 @@ export default function Home() {
             most.
           </p>
           <div className="flex gap-4">
-            <Link href="/app/dashboard">
+            <Link href="/dashboard">
               <Button size="lg" className="gap-2">
                 View Demo Dashboard
                 <ArrowRight className="h-4 w-4" />
@@ -149,7 +149,7 @@ export default function Home() {
             See how FeedbackFlow AI can help your team turn scattered feedback into clear,
             actionable insights.
           </p>
-          <Link href="/app/dashboard">
+          <Link href="/dashboard">
             <Button size="lg" variant="secondary" className="gap-2">
               View Demo Dashboard
               <ArrowRight className="h-4 w-4" />
