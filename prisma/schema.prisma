@@ -4,11 +4,16 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
-}
+// generator client {
+//   provider = "prisma-client"
+//   output   = "../src/generated/prisma"
+// }
 
+generator client {
+  provider      = "prisma-client-js" // here do not use the new client (prisma-client)
+  binaryTargets = ["native", "linux-musl", "rhel-openssl-3.0.x"]  // first one is for cross-platform, second one for docker, last one for serverless environment. safe to include all
+  output        = "../src/generated/prisma" // it is better to include the generator inside `src/` or `app/` if `src/` not available.
+}
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")

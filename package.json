@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "vercel-build": "npx prisma generate && npm run build",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "npx prisma generate"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
