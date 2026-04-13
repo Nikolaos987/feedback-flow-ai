@@ -28,7 +28,7 @@ export default async function InboxLayout({ children }: { children: React.ReactN
     <SidebarProvider>
       <AppSidebar session={session} />
       <SidebarInset>
-        <Navbar />
+        <Navbar session={session} />
         <div className="flex flex-1 flex-col gap-2 p-0 pt-0 sm:gap-4 sm:p-4">
           <div className="flex-1 rounded-lg sm:rounded-xl sm:p-4 md:p-6">
             <div className="w-full space-y-4 sm:space-y-6">

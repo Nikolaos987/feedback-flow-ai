@@ -1,9 +1,27 @@
-import { Sparkles } from "lucide-react";
+import { LogOut, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/app/actions/userActions";
+import { getSession, requireSession } from "@/lib/session";
+import { mapSessionUserToSidebarUser } from "@/lib/userFunctions";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-export default function Navbar() {
+export default async function Navbar({
+  session,
+}: {
+  session?: Awaited<ReturnType<typeof requireSession>>;
+}) {
+  const currentSession = session ?? (await getSession());
+  const user = currentSession ? mapSessionUserToSidebarUser(currentSession) : null;
+
   return (
     <header
       className="bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-20
@@ -32,9 +50,50 @@ export default function Navbar() {
           <Link href="/dashboard">
             <Button size="sm">Dashboard</Button>
           </Link>
-          <Button className="bg-destructive" onClick={signOutAction}>
-            Sign out
-          </Button>
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="cursor-pointer" asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <Avatar className="h-8 w-8">
+                    {user?.avatar && (
+                      <AvatarImage
+                        src={user?.avatar}
+                        alt={user?.name}
+                        referrerPolicy="no-referrer"
+                      />
+                    )}
+                    <AvatarFallback>{user.initials}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm font-medium">{user.name}</p>
+                    <p className="text-muted-foreground text-xs">{user.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="cursor-pointer p-0">
+                  <form action={signOutAction} className="w-full">
+                    <button
+                      type="submit"
+                      className="flex w-full items-center gap-2 px-2 py-1.5 text-sm"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Log out
+                    </button>
+                  </form>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href="/signin">
+              <Button size="sm" variant="outline">
+                Sign In
+              </Button>
+            </Link>
+          )}
         </nav>
       </div>
     </header>
