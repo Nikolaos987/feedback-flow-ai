@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 
 export const ingestIssues = inngest.createFunction(
   { id: "ingest-github-issues" },
-  [{ cron: "/3 * * * *" }], // Run cron daily at 8AM.
+  [{ cron: "* * * * *" }], // Run cron daily at 8AM.
   async ({ step }) => {
     // Step 1: Fetch issues
     const issues = await step.run("fetch-github-issues", getGithubIssues);
