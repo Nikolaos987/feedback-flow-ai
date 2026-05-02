@@ -43,7 +43,7 @@ const navItems = [
   },
   {
     title: "About",
-    href: "/app/about",
+    href: "/about",
     icon: Info,
   },
 ];
